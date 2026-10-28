@@ -15,6 +15,12 @@ import {
   Check,
   UserCheck,
   LogOut,
+  Cloud,
+  CloudOff,
+  RefreshCw,
+  Info,
+  ExternalLink,
+  X,
 } from 'lucide-react';
 import { useFabricStore } from '../context/FabricStoreContext';
 import { ROLE_LABELS } from '../types/fabric';
@@ -44,9 +50,12 @@ export const TopBar: React.FC<TopBarProps> = ({ activeTab, setActiveTab }) => {
     switchUser,
     hasPermission,
     logout,
+    syncStatus,
+    syncErrorMessage,
   } = useFabricStore();
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [showSyncModal, setShowSyncModal] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
@@ -133,6 +142,43 @@ export const TopBar: React.FC<TopBarProps> = ({ activeTab, setActiveTab }) => {
 
           {/* Zone 3: User Switcher & Actions */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Cloud Sync Status Pill */}
+            {syncStatus === 'synced' ? (
+              <div
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg"
+                title="All fabric stock changes are synced live to Firebase Firestore"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="flex items-center gap-1">
+                  <Cloud className="w-3.5 h-3.5" />
+                  <span>Cloud Synced</span>
+                </span>
+              </div>
+            ) : syncStatus === 'connecting' ? (
+              <div
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 rounded-lg"
+                title="Checking Cloud Firestore connection..."
+              >
+                <RefreshCw className="w-3 h-3 text-slate-400 animate-spin" />
+                <span>Connecting...</span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowSyncModal(true)}
+                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg transition-colors cursor-pointer"
+                title="Click for instructions on enabling Cloud Sync"
+              >
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                <span className="flex items-center gap-1">
+                  <CloudOff className="w-3.5 h-3.5 text-amber-600" />
+                  <span className="hidden sm:inline">Local Saved (Setup Cloud)</span>
+                  <span className="sm:hidden">Local Saved</span>
+                </span>
+                <Info className="w-3.5 h-3.5 text-amber-600 ml-0.5" />
+              </button>
+            )}
+
             {/* User Profile Switcher Popover */}
             <div className="relative" ref={userMenuRef}>
               <button
@@ -276,6 +322,79 @@ export const TopBar: React.FC<TopBarProps> = ({ activeTab, setActiveTab }) => {
           })}
         </div>
       </div>
+
+      {/* Cloud Sync Setup Guidance Modal */}
+      {showSyncModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between px-6 py-4 bg-slate-900 text-white">
+              <div className="flex items-center gap-2">
+                <Cloud className="w-5 h-5 text-blue-400" />
+                <h3 className="font-bold text-sm">Firebase Cloud Sync Setup</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSyncModal(false)}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 text-xs text-slate-700">
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 flex items-start gap-2.5">
+                <span className="text-lg">✓</span>
+                <div>
+                  <span className="font-bold">আপনার বর্তমান ডেটা সম্পূর্ণ সুরক্ষিত:</span>
+                  <p className="mt-0.5 text-emerald-800">
+                    স্টক কমানো বা নতুন ডেটা ইনপুট করার পর তা সরাসরি ব্রাউজারের লোকাল স্টোরেজে সেভ হয়ে থাকছে। পেজ রিলোড দিলেও ডেটা মুছে যাবে না।
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900">
+                <span className="font-bold">মোবাইল বা অন্য ডিভাইস থেকে রিয়েল-টাইম দেখতে:</span>
+                <p className="mt-1 text-amber-800">
+                  আপনার ফায়ারবেস প্রজেক্টে (<code className="font-mono bg-amber-100 px-1 py-0.5 rounded font-bold">soy-valve-xbcxw</code>) ফায়ারবেস ডেটাবেস ইনস্ট্যান্সটি তৈরি (Create) করা বাকি রয়েছে।
+                </p>
+                <div className="mt-3 space-y-1.5 font-sans">
+                  <div className="flex items-start gap-2">
+                    <span className="font-bold bg-amber-200 px-1.5 py-0.5 rounded text-[10px]">১</span>
+                    <span>Firebase Console-এ গিয়ে <strong>Firestore Database</strong> ওপেন করুন।</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="font-bold bg-amber-200 px-1.5 py-0.5 rounded text-[10px]">২</span>
+                    <span><strong>"Create database"</strong> বাটনে ক্লিক করে <strong>asia-south1</strong> লোকেশন সিলেক্ট করে Enable করুন।</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="font-bold bg-amber-200 px-1.5 py-0.5 rounded text-[10px]">৩</span>
+                    <span>তৈরি হয়ে গেলে এই অ্যাপের স্ট্যাটাস স্বয়ংক্রিয়ভাবে <strong className="text-emerald-700 font-mono">🟢 Cloud Synced</strong> হয়ে যাবে!</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-end">
+                <a
+                  href="https://console.firebase.google.com/project/soy-valve-xbcxw/firestore"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-xs transition-colors"
+                >
+                  <span>Firebase Console খুলুন (Create Database)</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setShowSyncModal(false)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors"
+                >
+                  ঠিক আছে, বন্ধ করুন
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

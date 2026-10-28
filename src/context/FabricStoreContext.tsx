@@ -104,6 +104,10 @@ interface FabricStoreContextType {
   updateRollStatus: (rollId: string, status: QualityStatus) => void;
   resetToInitialData: () => void;
 
+  // Sync state
+  syncStatus: 'synced' | 'connecting' | 'offline_local';
+  syncErrorMessage: string | null;
+
   // Computed metrics
   stats: {
     totalInStockKg: number;
@@ -166,11 +170,94 @@ export const FabricStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const currentUser = users.find(u => u.id === currentUserId) || users[0] || INITIAL_USERS[0];
 
-  const [pos, setPos] = useState<PurchaseOrder[]>(INITIAL_POS);
-  const [rolls, setRolls] = useState<FabricRoll[]>(INITIAL_ROLLS);
-  const [receives, setReceives] = useState<FabricReceiveRecord[]>(INITIAL_RECEIVES);
-  const [issues, setIssues] = useState<FabricIssueRecord[]>(INITIAL_ISSUES);
-  const [racks, setRacks] = useState<WarehouseRack[]>(INITIAL_RACKS);
+  const [pos, setPos] = useState<PurchaseOrder[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.POS);
+      return saved ? JSON.parse(saved) : INITIAL_POS;
+    } catch {
+      return INITIAL_POS;
+    }
+  });
+
+  const [rolls, setRolls] = useState<FabricRoll[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.ROLLS);
+      return saved ? JSON.parse(saved) : INITIAL_ROLLS;
+    } catch {
+      return INITIAL_ROLLS;
+    }
+  });
+
+  const [receives, setReceives] = useState<FabricReceiveRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.RECEIVES);
+      return saved ? JSON.parse(saved) : INITIAL_RECEIVES;
+    } catch {
+      return INITIAL_RECEIVES;
+    }
+  });
+
+  const [issues, setIssues] = useState<FabricIssueRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.ISSUES);
+      return saved ? JSON.parse(saved) : INITIAL_ISSUES;
+    } catch {
+      return INITIAL_ISSUES;
+    }
+  });
+
+  const [racks, setRacks] = useState<WarehouseRack[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.RACKS);
+      return saved ? JSON.parse(saved) : INITIAL_RACKS;
+    } catch {
+      return INITIAL_RACKS;
+    }
+  });
+
+  const [syncStatus, setSyncStatus] = useState<'synced' | 'connecting' | 'offline_local'>('connecting');
+  const [syncErrorMessage, setSyncErrorMessage] = useState<string | null>(null);
+
+  // Auto-persist all local changes to localStorage immediately
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.POS, JSON.stringify(pos));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [pos]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.ROLLS, JSON.stringify(rolls));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [rolls]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.RECEIVES, JSON.stringify(receives));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [receives]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.ISSUES, JSON.stringify(issues));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [issues]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.RACKS, JSON.stringify(racks));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [racks]);
 
   // Real-time synchronization with Firestore
   useEffect(() => {
@@ -181,11 +268,18 @@ export const FabricStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
           if (!snapshot.empty) {
             const loaded = snapshot.docs.map(doc => doc.data() as PurchaseOrder);
             setPos(loaded);
+            setSyncStatus('synced');
+            setSyncErrorMessage(null);
           } else {
-            INITIAL_POS.forEach(p => setDoc(doc(db, 'pos', p.id), p).catch(e => console.log(e)));
+            INITIAL_POS.forEach(p => setDoc(doc(db, 'pos', p.id), p).catch(() => {}));
+            setSyncStatus('synced');
           }
         },
-        error => console.error('Firestore pos error:', error)
+        error => {
+          console.warn('Firestore pos sync:', error.message);
+          setSyncStatus('offline_local');
+          setSyncErrorMessage(error.message);
+        }
       );
 
       const unsubRolls = onSnapshot(
@@ -194,11 +288,15 @@ export const FabricStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
           if (!snapshot.empty) {
             const loaded = snapshot.docs.map(doc => doc.data() as FabricRoll);
             setRolls(loaded);
+            setSyncStatus('synced');
           } else {
-            INITIAL_ROLLS.forEach(r => setDoc(doc(db, 'rolls', r.id), r).catch(e => console.log(e)));
+            INITIAL_ROLLS.forEach(r => setDoc(doc(db, 'rolls', r.id), r).catch(() => {}));
           }
         },
-        error => console.error('Firestore rolls error:', error)
+        error => {
+          console.warn('Firestore rolls sync:', error.message);
+          setSyncStatus('offline_local');
+        }
       );
 
       const unsubReceives = onSnapshot(
@@ -207,11 +305,15 @@ export const FabricStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
           if (!snapshot.empty) {
             const loaded = snapshot.docs.map(doc => doc.data() as FabricReceiveRecord);
             setReceives(loaded.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+            setSyncStatus('synced');
           } else {
-            INITIAL_RECEIVES.forEach(rcv => setDoc(doc(db, 'receives', rcv.id), rcv).catch(e => console.log(e)));
+            INITIAL_RECEIVES.forEach(rcv => setDoc(doc(db, 'receives', rcv.id), rcv).catch(() => {}));
           }
         },
-        error => console.error('Firestore receives error:', error)
+        error => {
+          console.warn('Firestore receives sync:', error.message);
+          setSyncStatus('offline_local');
+        }
       );
 
       const unsubIssues = onSnapshot(
@@ -220,11 +322,15 @@ export const FabricStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
           if (!snapshot.empty) {
             const loaded = snapshot.docs.map(doc => doc.data() as FabricIssueRecord);
             setIssues(loaded.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+            setSyncStatus('synced');
           } else {
-            INITIAL_ISSUES.forEach(iss => setDoc(doc(db, 'issues', iss.id), iss).catch(e => console.log(e)));
+            INITIAL_ISSUES.forEach(iss => setDoc(doc(db, 'issues', iss.id), iss).catch(() => {}));
           }
         },
-        error => console.error('Firestore issues error:', error)
+        error => {
+          console.warn('Firestore issues sync:', error.message);
+          setSyncStatus('offline_local');
+        }
       );
 
       const unsubRacks = onSnapshot(
@@ -233,11 +339,15 @@ export const FabricStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
           if (!snapshot.empty) {
             const loaded = snapshot.docs.map(doc => doc.data() as WarehouseRack);
             setRacks(loaded);
+            setSyncStatus('synced');
           } else {
-            INITIAL_RACKS.forEach(rack => setDoc(doc(db, 'racks', rack.id), rack).catch(e => console.log(e)));
+            INITIAL_RACKS.forEach(rack => setDoc(doc(db, 'racks', rack.id), rack).catch(() => {}));
           }
         },
-        error => console.error('Firestore racks error:', error)
+        error => {
+          console.warn('Firestore racks sync:', error.message);
+          setSyncStatus('offline_local');
+        }
       );
 
       return () => {
@@ -247,8 +357,10 @@ export const FabricStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
         unsubIssues();
         unsubRacks();
       };
-    } catch (err) {
-      console.error('Firestore sync error:', err);
+    } catch (err: any) {
+      console.warn('Firestore connection failed, operating in offline local mode:', err);
+      setSyncStatus('offline_local');
+      setSyncErrorMessage(err?.message || 'Database not available');
     }
   }, []);
 
@@ -789,6 +901,8 @@ export const FabricStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
         transferRollRack,
         updateRollStatus,
         resetToInitialData,
+        syncStatus,
+        syncErrorMessage,
         stats,
       }}
     >
