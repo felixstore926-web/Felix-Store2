@@ -59,11 +59,11 @@ export const POMaster: React.FC<POMasterProps> = ({ onNavigateToReceive, onNavig
   // Filtered PO list
   const filteredPOs = pos.filter(po => {
     const matchesSearch =
-      po.poNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      po.style.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      po.buyer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      po.item.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      po.supplier.toLowerCase().includes(searchQuery.toLowerCase());
+      (po.poNumber?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+      (po.style?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+      (po.buyer?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+      (po.item?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+      (po.supplier?.toLowerCase() || '').includes(searchQuery.toLowerCase());
 
     const matchesBuyer = buyerFilter === 'ALL' || po.buyer === buyerFilter;
     const matchesStatus = statusFilter === 'ALL' || po.status === statusFilter;
