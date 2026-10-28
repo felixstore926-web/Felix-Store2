@@ -166,50 +166,11 @@ export const FabricStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const currentUser = users.find(u => u.id === currentUserId) || users[0] || INITIAL_USERS[0];
 
-  const [pos, setPos] = useState<PurchaseOrder[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.POS);
-      return saved ? JSON.parse(saved) : INITIAL_POS;
-    } catch {
-      return INITIAL_POS;
-    }
-  });
-
-  const [rolls, setRolls] = useState<FabricRoll[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.ROLLS);
-      return saved ? JSON.parse(saved) : INITIAL_ROLLS;
-    } catch {
-      return INITIAL_ROLLS;
-    }
-  });
-
-  const [receives, setReceives] = useState<FabricReceiveRecord[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.RECEIVES);
-      return saved ? JSON.parse(saved) : INITIAL_RECEIVES;
-    } catch {
-      return INITIAL_RECEIVES;
-    }
-  });
-
-  const [issues, setIssues] = useState<FabricIssueRecord[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.ISSUES);
-      return saved ? JSON.parse(saved) : INITIAL_ISSUES;
-    } catch {
-      return INITIAL_ISSUES;
-    }
-  });
-
-  const [racks, setRacks] = useState<WarehouseRack[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.RACKS);
-      return saved ? JSON.parse(saved) : INITIAL_RACKS;
-    } catch {
-      return INITIAL_RACKS;
-    }
-  });
+  const [pos, setPos] = useState<PurchaseOrder[]>(INITIAL_POS);
+  const [rolls, setRolls] = useState<FabricRoll[]>(INITIAL_ROLLS);
+  const [receives, setReceives] = useState<FabricReceiveRecord[]>(INITIAL_RECEIVES);
+  const [issues, setIssues] = useState<FabricIssueRecord[]>(INITIAL_ISSUES);
+  const [racks, setRacks] = useState<WarehouseRack[]>(INITIAL_RACKS);
 
   // Real-time synchronization with Firestore
   useEffect(() => {
