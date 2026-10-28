@@ -175,50 +175,70 @@ export const FabricStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Real-time synchronization with Firestore
   useEffect(() => {
     try {
-      const unsubPos = onSnapshot(collection(db, 'pos'), snapshot => {
-        if (!snapshot.empty) {
-          const loaded = snapshot.docs.map(doc => doc.data() as PurchaseOrder);
-          setPos(loaded);
-        } else {
-          INITIAL_POS.forEach(p => setDoc(doc(db, 'pos', p.id), p));
-        }
-      });
+      const unsubPos = onSnapshot(
+        collection(db, 'pos'),
+        snapshot => {
+          if (!snapshot.empty) {
+            const loaded = snapshot.docs.map(doc => doc.data() as PurchaseOrder);
+            setPos(loaded);
+          } else {
+            INITIAL_POS.forEach(p => setDoc(doc(db, 'pos', p.id), p).catch(e => console.log(e)));
+          }
+        },
+        error => console.error('Firestore pos error:', error)
+      );
 
-      const unsubRolls = onSnapshot(collection(db, 'rolls'), snapshot => {
-        if (!snapshot.empty) {
-          const loaded = snapshot.docs.map(doc => doc.data() as FabricRoll);
-          setRolls(loaded);
-        } else {
-          INITIAL_ROLLS.forEach(r => setDoc(doc(db, 'rolls', r.id), r));
-        }
-      });
+      const unsubRolls = onSnapshot(
+        collection(db, 'rolls'),
+        snapshot => {
+          if (!snapshot.empty) {
+            const loaded = snapshot.docs.map(doc => doc.data() as FabricRoll);
+            setRolls(loaded);
+          } else {
+            INITIAL_ROLLS.forEach(r => setDoc(doc(db, 'rolls', r.id), r).catch(e => console.log(e)));
+          }
+        },
+        error => console.error('Firestore rolls error:', error)
+      );
 
-      const unsubReceives = onSnapshot(collection(db, 'receives'), snapshot => {
-        if (!snapshot.empty) {
-          const loaded = snapshot.docs.map(doc => doc.data() as FabricReceiveRecord);
-          setReceives(loaded.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-        } else {
-          INITIAL_RECEIVES.forEach(rcv => setDoc(doc(db, 'receives', rcv.id), rcv));
-        }
-      });
+      const unsubReceives = onSnapshot(
+        collection(db, 'receives'),
+        snapshot => {
+          if (!snapshot.empty) {
+            const loaded = snapshot.docs.map(doc => doc.data() as FabricReceiveRecord);
+            setReceives(loaded.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+          } else {
+            INITIAL_RECEIVES.forEach(rcv => setDoc(doc(db, 'receives', rcv.id), rcv).catch(e => console.log(e)));
+          }
+        },
+        error => console.error('Firestore receives error:', error)
+      );
 
-      const unsubIssues = onSnapshot(collection(db, 'issues'), snapshot => {
-        if (!snapshot.empty) {
-          const loaded = snapshot.docs.map(doc => doc.data() as FabricIssueRecord);
-          setIssues(loaded.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-        } else {
-          INITIAL_ISSUES.forEach(iss => setDoc(doc(db, 'issues', iss.id), iss));
-        }
-      });
+      const unsubIssues = onSnapshot(
+        collection(db, 'issues'),
+        snapshot => {
+          if (!snapshot.empty) {
+            const loaded = snapshot.docs.map(doc => doc.data() as FabricIssueRecord);
+            setIssues(loaded.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+          } else {
+            INITIAL_ISSUES.forEach(iss => setDoc(doc(db, 'issues', iss.id), iss).catch(e => console.log(e)));
+          }
+        },
+        error => console.error('Firestore issues error:', error)
+      );
 
-      const unsubRacks = onSnapshot(collection(db, 'racks'), snapshot => {
-        if (!snapshot.empty) {
-          const loaded = snapshot.docs.map(doc => doc.data() as WarehouseRack);
-          setRacks(loaded);
-        } else {
-          INITIAL_RACKS.forEach(rack => setDoc(doc(db, 'racks', rack.id), rack));
-        }
-      });
+      const unsubRacks = onSnapshot(
+        collection(db, 'racks'),
+        snapshot => {
+          if (!snapshot.empty) {
+            const loaded = snapshot.docs.map(doc => doc.data() as WarehouseRack);
+            setRacks(loaded);
+          } else {
+            INITIAL_RACKS.forEach(rack => setDoc(doc(db, 'racks', rack.id), rack).catch(e => console.log(e)));
+          }
+        },
+        error => console.error('Firestore racks error:', error)
+      );
 
       return () => {
         unsubPos();
