@@ -136,9 +136,9 @@ export const POMaster: React.FC<POMasterProps> = ({ onNavigateToReceive, onNavig
 
   // Helper stats for POs
   const getPOStats = (poNumber: string) => {
-    const poRolls = rolls.filter(r => r.poNumber.toLowerCase() === poNumber.toLowerCase());
-    const totalReceivedKg = poRolls.reduce((sum, r) => sum + r.originalWeight, 0);
-    const inStockKg = poRolls.reduce((sum, r) => sum + r.currentWeight, 0);
+    const poRolls = rolls.filter(r => r.poNumber?.toLowerCase() === poNumber?.toLowerCase());
+    const totalReceivedKg = poRolls.reduce((sum, r) => sum + (r.originalWeight || 0), 0);
+    const inStockKg = poRolls.reduce((sum, r) => sum + (r.currentWeight || 0), 0);
     const activeRollsCount = poRolls.filter(r => r.currentWeight > 0.001).length;
     return {
       totalRolls: poRolls.length,
@@ -280,7 +280,7 @@ export const POMaster: React.FC<POMasterProps> = ({ onNavigateToReceive, onNavig
               ) : (
                 filteredPOs.map(po => {
                   const poStats = getPOStats(po.poNumber);
-                  const fulfillmentPct = Math.min(100, Math.round((poStats.totalReceivedKg / (po.orderQty || 1)) * 100));
+                  const fulfillmentPct = Math.min(100, Math.round((poStats.totalReceivedKg / ((po.orderQty || 1) !== 0 ? (po.orderQty || 1) : 1)) * 100));
 
                   return (
                     <tr key={po.id} className="hover:bg-slate-50/80 transition-colors group">
