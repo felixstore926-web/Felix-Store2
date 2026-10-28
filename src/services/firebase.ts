@@ -1,14 +1,14 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
-// Firebase configuration using environment variables or placeholders as requested
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyPlaceholderKeyForEnvironment',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'soy-valve-xbcxw.firebaseapp.com',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'soy-valve-xbcxw',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'soy-valve-xbcxw.appspot.com',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '123456789012',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:123456789012:web:abcdef1234567890',
+  apiKey: "AIzaSyBcGe5XKdnO1lCUDN8iJu05Sgazgk4QbsQ",
+  authDomain: "soy-valve-xbcxw.firebaseapp.com",
+  projectId: "soy-valve-xbcxw",
+  storageBucket: "soy-valve-xbcxw.firebasestorage.app",
+  messagingSenderId: "302765203301",
+  appId: "1:302765203301:web:866c10e503d71eb7e64b8c"
 };
 
 // Initialize Firebase
